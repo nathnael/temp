@@ -15,5 +15,17 @@ module Temp
     # Application configuration can go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded after loading
     # the framework and any gems in your application.
+    # Get applicaiton version from git tag
+    if Rails.env.development?
+      tag = `git describe --tags --always`
+      commit = `git rev-list -n 1 #{tag}`
+      updated = `git show -s --format=%cd --date=local #{commit}`
+      File.open('config/VERSION', 'w') do |file|
+        file.write tag
+      file.write " | Last updated on #{updated}"
+      end      
+    end
+
+    config.version = File.read('config/VERSION')
   end
 end

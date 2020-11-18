@@ -1,15 +1,46 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Temp</title>
-    <%= csrf_meta_tags %>
+    <title>Some App</title>
+    <%= csrf_meta_tags %> 
     <%= csp_meta_tag %>
-
-    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <% if user_signed_in? %> 
+      <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %> 
+    <% else %>
+      <%= stylesheet_link_tag 'login_page', media: 'all', 'data-turbolinks-track': 'reload' %> 
+    <% end %>
     <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
+    <script src="https://kit.fontawesome.com/6d90f39943.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@2.9.1/dist/Chart.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.1/dist/Chart.min.js"></script>
   </head>
+  <body class="sidebar-mini">
+    <div class="wrapper">
+      <% if user_signed_in? %> 
+        <%= render partial: "layouts/header" %> 
+        <%= render partial: "layouts/sidebar" %>
+      <% else %>
+        <%= render partial: "layouts/login_header" %> 
+      <% end %>
 
-  <body>
-    <%= yield %>
+      
+
+    <% if user_signed_in? %> 
+      <div class="content-wrapper">
+    <% else %>
+      <div class="main">
+    <% end %>            
+
+        <%= yield %>
+        <%= toastr_flash %>
+      </div>
+      
+
+      <% if user_signed_in? %> 
+        <%= render partial: "layouts/footer" %>
+      <% else %>
+        <%= render partial: "layouts/login_footer" %> 
+      <% end %>
+    </div>
   </body>
 </html>
