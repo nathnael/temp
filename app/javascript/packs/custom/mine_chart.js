@@ -226,60 +226,152 @@ $(document).ready(function() {
   // );
 
 
-  // Prepare demo data
-// Data is joined to map using value of 'hc-key' property by default.
-// See API docs for 'joinBy' for more info on linking data and map.
-        var data = [
-        ['et-be', 0],
-        ['et-2837', 1],
-        ['et-ha', 2],
-        ['et-sn', 3],
-        ['et-ga', 4],
-        ['et-aa', 5],
-        ['et-so', 6],
-        ['et-dd', 7],
-        ['et-ti', 8],
-        ['et-af', 9],
-        ['et-am', 10]
-    ];
-    
-    // Create the chart
-    Highcharts.mapChart('container', {
-        chart: {
-            map: 'countries/et/et-all'
-        },
-    
-        title: {
-            text: 'Highmaps basic demo'
-        },
-    
-        subtitle: {
-            text: 'Source map: <a href="http://code.highcharts.com/mapdata/countries/et/et-all.js">Ethiopia</a>'
-        },
-    
-        mapNavigation: {
-            enabled: true,
-            buttonOptions: {
-                verticalAlign: 'bottom'
+  // Prepare random data
+  /*
+TODO:
+- Check data labels after drilling. Label rank? New positions?
+*/
+
+let data = Highcharts.geojson(Highcharts.maps['countries/et/et-all']);
+const separators = Highcharts.geojson(Highcharts.maps['countries/et/et-all'], 'mapline');
+
+// Set drilldown pointers
+data.forEach((d, i) => {
+    d.drilldown = d.properties['ADM1_EN'];
+    d.value = i; // Non-random bogus data    
+});
+
+function getScript(url, cb) {
+    const script = document.createElement('script');
+    script.src = url;
+    script.onload = cb;
+    document.head.appendChild(script);
+}
+
+// Instantiate the map
+Highcharts.mapChart('container', {
+    chart: {
+        events: {
+            drilldown: function (e) {
+                if (!e.seriesOptions) {
+                    const chart = this,
+                        mapKey = e.point.drilldown;
+                        
+
+                    // Handle error, the timeout is cleared on success
+                    let fail = setTimeout(() => {
+                        if (!Highcharts.maps[mapKey]) {
+                            chart.showLoading('<i class="icon-frown"></i> Failed loading ' + e.point.name);
+                            fail = setTimeout(() => {
+                                chart.hideLoading();
+                            }, 1000);
+                        }
+                    }, 3000);
+
+                    // Show the spinner
+                    chart.showLoading('<i class="icon-spinner icon-spin icon-3x"></i>'); // Font Awesome spinner
+
+                    // Load the drilldown map
+                    getScript('jsons/' + mapKey + '-Zones.js', () => {
+                        data = Highcharts.geojson(Highcharts.maps[mapKey + '-Zones']);
+                        
+                        // Set a non-random bogus value
+                        data.forEach((d, i) => {
+                            d.value = i;
+                        });
+
+                        // Hide loading and add series
+                        chart.hideLoading();
+                        clearTimeout(fail);
+                        chart.addSeriesAsDrilldown(e.point, {
+                            name: e.point.properties.ADM2_EN,
+                            data: data,
+                            dataLabels: {
+                                enabled: true,
+                                format: '{point.properties.ADM2_EN}'
+                            }
+                        });
+                    });
+                }
+
+                this.setTitle(null, { text: e.point.properties.ADM2_EN });
+            },
+            drillup: function () {
+                this.setTitle(null, { text: '' });
             }
-        },
-    
-        colorAxis: {
-            min: 0
-        },
-    
-        series: [{
-            data: data,
-            name: 'Random data',
+        }
+    },
+
+    title: {
+        text: 'Ethiopia Map'
+    },
+
+    subtitle: {
+        text: '',
+        floating: true,
+        align: 'right',
+        y: 50,
+        style: {
+            fontSize: '16px'
+        }
+    },
+
+    colorAxis: {
+        min: 0,
+        minColor: '#E6E7E8',
+        maxColor: '#005645'
+    },
+
+    mapNavigation: {
+        enabled: true,
+        buttonOptions: {
+            verticalAlign: 'bottom'
+        }
+    },
+
+    plotOptions: {
+        map: {
             states: {
                 hover: {
-                    color: '#BADA55'
+                    color: '#EEDD66'
                 }
-            },
-            dataLabels: {
-                enabled: true,
-                format: '{point.name}'
             }
-        }]
-    });
+        }
+    },
+
+    series: [{
+        data: data,
+        name: 'Ethiopia',
+        dataLabels: {
+            enabled: true,
+            format: '{point.properties.ADM1_EN}'
+        }
+    }, {
+        type: 'mapline',
+        data: separators,
+        color: 'silver',
+        enableMouseTracking: false,
+        animation: {
+            duration: 500
+        }
+    }],
+
+    drilldown: {
+        activeDataLabelStyle: {
+            color: '#FFFFFF',
+            textDecoration: 'none',
+            textOutline: '1px #000000'
+        },
+        drillUpButton: {
+            relativeTo: 'spacingBox',
+            position: {
+                x: 0,
+                y: 60
+            }
+        }
+    }
+  });
+
+
+
 })
