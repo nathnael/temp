@@ -5,5 +5,5 @@ Rails.application.routes.draw do
   get 'activity/load_data'
   get 'welcome/index'
 
-  root to: 'activity#mine'
+  root to: 'dashboard#index'
 end
