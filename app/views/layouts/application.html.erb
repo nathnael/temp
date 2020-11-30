@@ -21,18 +21,10 @@
         <%= render partial: "layouts/login_header" %> 
       <% end %>
 
-      
-
-    <% if user_signed_in? %> 
-      <div class="content-wrapper">
-    <% else %>
-      <div class="main">
-    <% end %>            
-
+      <div class="<%= user_signed_in? ? "content-wrapper" : "main" %>">
         <%= yield %>
         <%= toastr_flash %>
-      </div>
-      
+      </div>     
 
       <% if user_signed_in? %> 
         <%= render partial: "layouts/footer" %>
